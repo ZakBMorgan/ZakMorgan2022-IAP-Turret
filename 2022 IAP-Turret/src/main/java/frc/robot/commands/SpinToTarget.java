@@ -5,8 +5,9 @@
 package frc.robot.commands;
 
 import frc.robot.subsystems.DriveTrain;
-//import frc.robot.subsystems.ExampleSubsystem;
+import frc.robot.subsystems.ExampleSubsystem;
 import frc.robot.subsystems.limelight;
+import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.CommandBase;
 
 /** An example command that uses an example subsystem. */
@@ -25,7 +26,7 @@ public class SpinToTarget extends CommandBase {
   public SpinToTarget(DriveTrain driveTrain, limelight limeLight) {
    // m_subsystem = subsystem;
     this.driveTrain = driveTrain;
-    this.limeLight = limeLight;
+    this.limeLight= limeLight;
     // Use addRequirements() here to declare subsystem dependencies.
    // addRequirements(subsystem);
   }
@@ -39,7 +40,13 @@ public class SpinToTarget extends CommandBase {
   // Called every time the scheduler runs while the command is scheduled.
   @Override
   public void execute() {
-    driveTrain.tankDrive(-0.4, 0.4);
+    if(limeLight.get_tv() == 0){
+      driveTrain.tankDrive(0.4, -0.4);
+    } else {
+      if(limeLight.get_tv() == 1){
+        driveTrain.tankDrive(0, 0);
+      }
+    }
   }
 
   // Called once the command ends or is interrupted.
@@ -51,6 +58,6 @@ public class SpinToTarget extends CommandBase {
   // Returns true when the command should end.
   @Override
   public boolean isFinished() {
-    return limeLight.get_tv()==1;
+    return limeLight.get_tv() == 1;
   }
 }
