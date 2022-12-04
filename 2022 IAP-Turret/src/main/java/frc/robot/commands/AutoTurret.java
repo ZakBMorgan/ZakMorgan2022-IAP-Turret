@@ -54,8 +54,7 @@ public class AutoTurret extends CommandBase {
       turret.spin(-0.2*RobotContainer.getJoy1().getY());
     }
     if (!manualToggle) {
-      // TODO - What if the target is in range, but
-      // the turret can't spin there?
+
       if (lime.get_tv() == 0) {
 
         if (turret.getCCW_Reverse_LimitSw() == limitSwitchClosed) {
@@ -82,7 +81,7 @@ public class AutoTurret extends CommandBase {
       // This is a placeholder then for safety
       } else if (lime.get_tv() == 0 && !(turret.getCCW_Reverse_LimitSw() == limitSwitchClosed | turret.getCW_Forward_LimitSw() == limitSwitchClosed)) {
         double speed = pid.calculate(lime.get_tx()); // If it exists and within range, apply PID to the output
-        turret.spin(speed); // Should spin clockwise for positive Yaw value
+        turret.spin(speed); // Should spin clockwise for positive tx value
       } else {
         turret.spin(0.0); // Disables motor if above conditions aren't met
       }
