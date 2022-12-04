@@ -16,11 +16,15 @@ public class limelight extends SubsystemBase {
 
   NetworkTable table = NetworkTableInstance.getDefault().getTable("limelight");
   NetworkTableEntry tv = table.getEntry("tv");
+  //if tv == 0, it doesn't see anything, tv == 1 means it sees an object
   NetworkTableEntry tx = table.getEntry("tx");
+  //horizontal
   NetworkTableEntry ty = table.getEntry("ty");
+  //vertical
   NetworkTableEntry ta = table.getEntry("ta");
+  //area
 
-  private double tvNum;
+  private int tvNum;
   private double txNum;
   private double tyNum;
   private double taNum;
@@ -43,7 +47,7 @@ public class limelight extends SubsystemBase {
     
   }
 
-  public double get_tv(){
+  public int get_tv(){
     return tvNum;
   }
   public double get_tx(){
@@ -63,7 +67,7 @@ public class limelight extends SubsystemBase {
     SmartDashboard.putNumber("LimelightY", y);
     SmartDashboard.putNumber("LimelightArea", area);
 
-    tvNum = tv.getDouble(0.0);
+    tvNum = (int) tv.getDouble(0.0);
     txNum = tx.getDouble(0.0);
     tyNum = ty.getDouble(0.0);
     taNum = ta.getDouble(0.0);
