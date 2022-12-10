@@ -4,100 +4,151 @@
 
 package frc.robot.commands;
 
-import edu.wpi.first.math.controller.PIDController;
-import edu.wpi.first.wpilibj.Timer;
-import edu.wpi.first.wpilibj2.command.CommandBase;
+import frc.robot.RobotContainer;
+import frc.robot.subsystems.ExampleSubsystem;
 import frc.robot.subsystems.limelight;
 import frc.robot.subsystems.Turret;
-import frc.robot.RobotContainer;
-import frc.robot.subsystems.*;
+import edu.wpi.first.math.controller.PIDController;
+import edu.wpi.first.wpilibj2.command.CommandBase;
 
 public class AutoTurret extends CommandBase {
-  /** Creates a new AutoTurret. */
+  @SuppressWarnings({"PMD.UnusedPrivateField", "PMD.SingularField"})
+
   public final limelight lime;
   public final Turret turret;
   public PIDController pid;
-  public boolean directionToggle;
-  public boolean manualToggle = true;
-  // The constant at which the limit switch returns a physically closed state
-  private double limitSwitchClosed = 1.0;
-  private double manualSwitchTime = 0.1;
-  private Timer manualTimer;
 
+  // The constant where the limit switch returns as closed
+  public int limitSwitchClosed = 1;
+
+  // The constant where the limit switch returns as opened
+  public int limitSwitchOpen = 0;
+
+  // When the limit swith is manually toggled 
+  public boolean manualToggle = true;
+  public boolean directionToggle;
+
+ 
   public AutoTurret(limelight lime, Turret turret) {
-    // Use addRequirements() here to declare subsystem dependencies.
-    this.lime = lime;
+
     this.turret = turret;
-    manualTimer = new Timer();
-    pid = new PIDController(0.0, 0.0, 0.0);
+    this.lime = lime;
+
+   // P is the Proportional constant 
+    /* It will correct the error depending on how big the amount of error is:
+    * Small amount of error = low correction, High = larger correction
+    */
+    double kP = 0.0;
+
+    // I is the Integral constant
+    /* It adds up all the past errors to help remove constant errors because
+    * no matter how small the constant error, the sum will be significant enough 
+    * to adjust the controller output as needed
+    */
+    double kI = 0.0;
+
+    // D is the derivative constant
+    /* It will predict the amount of error in the future because it examines
+    * the slope of the change in error 
+    */
+    double kD = 0.0;
+
+    // PID is used to make small adjustments to achieve more precise movement
+    pid = new PIDController(kP, kI, kD); 
+
   }
 
   // Called when the command is initially scheduled.
   @Override
   public void initialize() {
+    
     turret.resetEncoders();
-    manualTimer.reset();
+    turret.setAngle(0);
+
   }
 
   // Called every time the scheduler runs while the command is scheduled.
   @Override
   public void execute() {
-    // When the trigger button is pressed, switch from manual to auto
-    // It uses a timer to "debounce" the button
-    if (RobotContainer.getJoy1().getRawButton(1) && manualTimer.get() >= manualSwitchTime) {
+
+    // Switches from manual to auto if button is pressed
+    if(RobotContainer.getJoy1().getTriggerReleased()){
       manualToggle = !manualToggle;
-      manualTimer.reset();
     }
 
-    if (manualToggle) {
-      // Uses slow, manual control by default
-      turret.spin(-0.2*RobotContainer.getJoy1().getY());
+    if(manualToggle == true){
+
+      // The joystick returns -1 so we use -0.2
+      turret.spin(-0.2*RobotContainer.getJoy1().getX()); 
     }
-    if (!manualToggle) {
-      // TODO - What if the target is in range, but
-      // the turret can't spin there?
-      if (lime.get_tv() == 0) {
 
-        if (turret.getCCW_Reverse_LimitSw() == limitSwitchClosed) {
-           // "True" means that it hit the limit switch
-           // in the reverse direction, and will be going CW.
-          directionToggle = true;
-        }
+    if(!manualToggle == true){
 
-        if (turret.getCW_Forward_LimitSw() == limitSwitchClosed) {
-           // "False" means that it hit the limit switch
-           // in the forward direction, and will be going CCW.
-          directionToggle = false;
-        }
+      // This is an if statement when there is a valid target (tv == 1) and the reverse 
+      //or forward limit switch is not closed
+      // This is just a placeholder for safety
+      if(lime.get_tv() == 1 && !(turret.getCCW_Reverse_LimitSw() == limitSwitchClosed | turret.getCW_Forward_LimitSw() == limitSwitchClosed)){
 
-        if (directionToggle) { // NOTE - Need to test directions
-          // Goes CW if hitting the reverse limit switch
-          turret.spin(0.3);
-        } else if (!directionToggle) { // NOTE - Need to test directions
-          // Goes CCW if hitting the forward limit switch
-          turret.spin(-0.3);
-        }
+        // Use the pid to precisely turn the chassis horizontally at a calculated speed
+        double speed = pid.calculate(lime.get_tx());
 
-      // NOTE - Does nothing if the target exists, but the limit switches are hit.
-      // This is a placeholder then for safety
-      } else if (lime.get_tv() == 0 && !(turret.getCCW_Reverse_LimitSw() == limitSwitchClosed | turret.getCW_Forward_LimitSw() == limitSwitchClosed)) {
-        double speed = pid.calculate(lime.get_tx()); // If it exists and within range, apply PID to the output
-        turret.spin(speed); // Should spin clockwise for positive Yaw value
-      } else {
-        turret.spin(0.0); // Disables motor if above conditions aren't met
+        // This should spin clockwise if there is a positive x position
+        turret.spin(speed); 
+
       }
 
-    }
+      // If the limelight has no valid targets
+      else if(lime.get_tv() == 0){
 
+        if(turret.getCCW_Reverse_LimitSw() == limitSwitchClosed){
+
+          // It is true when the reverse limit switch is hit
+          // Will go reverse in direction, so clockwise
+          directionToggle = true;
+
+        }
+
+        if(turret.getCW_Forward_LimitSw() == limitSwitchClosed){
+
+          // It is true when the forward limit switch is hit
+          // Will go forward in direction, so counter clockwise
+          directionToggle = false;
+
+        }
+
+        if(directionToggle == true){
+
+          // Will go clockwise if the reverse limit switch is hit
+          turret.spin(0.3); 
+
+        }
+
+        if(!directionToggle == true){
+          // Will go counter clockwise if the forward limit switch it hit
+          turret.spin(-0.3); 
+
+        }
+
+      } else {
+
+        // Will disable motor if all condition above aren't met
+        turret.spin(0); 
+
+      }
+    }
   }
 
   // Called once the command ends or is interrupted.
   @Override
-  public void end(boolean interrupted) {}
+  public void end(boolean interrupted) {
+
+  }
 
   // Returns true when the command should end.
   @Override
   public boolean isFinished() {
+
     return false;
+
   }
 }
