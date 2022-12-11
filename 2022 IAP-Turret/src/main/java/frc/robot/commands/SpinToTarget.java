@@ -5,53 +5,50 @@
 package frc.robot.commands;
 
 import frc.robot.subsystems.DriveTrain;
-import frc.robot.subsystems.ExampleSubsystem;
 import frc.robot.subsystems.limelight;
+import edu.wpi.first.wpilibj.Timer;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.CommandBase;
 
-/** An example command that uses an example subsystem. */
 public class SpinToTarget extends CommandBase {
   @SuppressWarnings({"PMD.UnusedPrivateField", "PMD.SingularField"})
-  //private final ExampleSubsystem m_subsystem;
 
-  private final limelight limeLight;
-  private final DriveTrain driveTrain;
+  private final limelight limelight;
+  private final DriveTrain driveTrain;  
   
-  /**
-   * Creates a new ExampleCommand.
-   *
-   * @param subsystem The subsystem used by this command.
-   */
-  public SpinToTarget(DriveTrain driveTrain, limelight limeLight) {
-   // m_subsystem = subsystem;
+  public SpinToTarget(DriveTrain driveTrain, limelight limelight) {
     this.driveTrain = driveTrain;
-    this.limeLight= limeLight;
-    // Use addRequirements() here to declare subsystem dependencies.
-   // addRequirements(subsystem);
+    this.limelight = limelight;
+
   }
 
   // Called when the command is initially scheduled.
   @Override
   public void initialize() {
-
   }
 
   // Called every time the scheduler runs while the command is scheduled.
   @Override
   public void execute() {
+
+      // This will spin the turret clockwise at 0.4/1.0 speed when there is no target in sight
       driveTrain.tankDrive(0.4, -0.4);
   }
 
   // Called once the command ends or is interrupted.
   @Override
   public void end(boolean interrupted) {
+
+    // This is called when there is a target in sight, so the chassis will stop turning completely
     driveTrain.tankDrive(0, 0);
   }
 
   // Returns true when the command should end.
   @Override
   public boolean isFinished() {
-    return limeLight.get_tv() == 1;
+    
+    // This code should run forever until there is a valid target (reflective tape or yellow ball)
+    //in sight and will continue to repeat
+    return limelight.get_tv() == 1;
   }
 }

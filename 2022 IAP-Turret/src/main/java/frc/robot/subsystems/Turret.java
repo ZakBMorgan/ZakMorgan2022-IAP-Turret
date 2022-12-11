@@ -31,23 +31,29 @@ public class Turret extends SubsystemBase {
     motor.setSelectedSensorPosition(angle);
   }
 
-  // Resets the position of the sensor in ticks, to 0
-  // Plural is needed if or when we have 2 encoders.
+  // Resets the position to 0 in ticks
+  // Plural is for 2+ encoders
   public void resetEncoders() {
     motor.setSelectedSensorPosition(0);
   }
 
   public double getAngle() {
+    // Multiplies by 360 for the degrees of a single, full revolution and divides 
+    //by 4096.0 because that's the total amount of ticks per revolution
     return motor.getSelectedSensorPosition() * 360 / (4096.0);
   }
 
   public double getCW_Forward_LimitSw() {
+
+    //We have to manually set the limit switches to closed
     return motor.isFwdLimitSwitchClosed();
-  }
+  } 
 
   public double getCCW_Reverse_LimitSw() {
+
+    //We have to manually set the limit switches to closed
     return motor.isRevLimitSwitchClosed();
-  }
+  } 
 
   public void spin(double speed){
     motor.set(ControlMode.PercentOutput, speed);
@@ -56,9 +62,9 @@ public class Turret extends SubsystemBase {
   @Override
   public void periodic() {
     SmartDashboard.putNumber("Angle: ", getAngle());
+
     // Shows limit switch status on SmartDashboard
-    // We need to adjust our logic to align with the readings/testing 
-    // of the limit switches.
+    // We need to adjust our code to align with what SmartDashboard returns
     SmartDashboard.putNumber("Forward Lim SW:", getCW_Forward_LimitSw());
     SmartDashboard.putNumber("Reverse Lim SW:", getCCW_Reverse_LimitSw());
   }
